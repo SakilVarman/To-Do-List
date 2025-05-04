@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced To-Do List</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --light-bg: #f8f9fa;
+            --dark-text: #212529;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            color: var(--dark-text);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 0;
+        }
+        
+        .app-title {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-size: 2.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .input-group {
+            display: flex;
+            margin-bottom: 1.5rem;
+        }
+        
+        #add {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px 0 0 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        #add:focus {
+            border-color: var(--primary);
+        }
+        
+        #submit {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0 8px 8px 0;
+            padding: 0 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        #submit:hover {
+            background-color: var(--secondary);
+        }
+        
+        .list-title {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
+            font-weight: 600;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        li {
+            margin-bottom: 0.7rem;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .task-btn {
+            width: 100%;
+            text-align: left;
+            padding: 0.8rem 1rem;
+            border: none;
+            border-radius: 6px;
+            background-color: var(--light-bg);
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        
+        .task-btn:hover {
+            background-color: #e2e6ea;
+            transform: translateY(-2px);
+        }
+        
+        .task-btn::after {
+            content: "✓";
+            opacity: 0;
+            color: var(--success);
+            font-weight: bold;
+            transition: opacity 0.3s;
+        }
+        
+        .task-btn:hover::after {
+            opacity: 1;
+        }
+        
+        #done li {
+            padding: 0.8rem 1rem;
+            background-color: #e9ecef;
+            border-radius: 6px;
+            color: #6c757d;
+            text-decoration: line-through;
+            display: flex;
+            align-items: center;
+        }
+        
+        #done li::before {
+            content: "✓";
+            color: var(--success);
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 1rem;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="app-title">To-Do List</h1>
+        
+        <div class="card">
+            <div class="input-group">
+                <input id="add" type="text" placeholder="What needs to be done?" autofocus>
+                <button id="submit">Add Task</button>
+            </div>
+            
+            <h2 class="list-title">Tasks</h2>
+            <ul id="todo">
+                <li class="empty-state" id="empty-todo">Your task list is empty. Add a task to get started!</li>
+            </ul>
+            
+            <h2 class="list-title">Completed</h2>
+            <ul id="done">
+                <li class="empty-state" id="empty-done">Complete a task to see it here!</li>
+            </ul>
+        </div>
+        
+        <footer>
+            Made with ❤️ | <span id="date"></span>
+        </footer>
+    </div>
+
+    <script>
+
+        let list = new Array();
+        const todolist = document.getElementById('todo');
+        const donelist = document.getElementById('done');
+        const emptyTodo = document.getElementById('empty-todo');
+        const emptyDone = document.getElementById('empty-done');
+        const submit = document.getElementById('submit');
+        const add = document.getElementById('add');
+        
+       
+        document.getElementById('date').textContent = new Date().toLocaleDateString();
+      
+        submit.addEventListener('click', addTask);
+        add.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addTask();
+            }
+        });
+        
+        function addTask() {
+            if (add.value.trim() !== '') {
+                
+                emptyTodo.style.display = 'none';
+                
+                
+                list.push(add.value);
+                
+           
+                const taskId = list.length - 1;
+                const taskItem = document.createElement('li');
+                taskItem.id = taskId;
+                
+                const taskButton = document.createElement('button');
+                taskButton.className = 'task-btn';
+                taskButton.textContent = add.value;
+                taskButton.onclick = function() { complete(taskId); };
+                
+                taskItem.appendChild(taskButton);
+                todolist.appendChild(taskItem);
+                
+                
+                add.value = '';
+                add.focus();
+            }
+        }
+        
+        function complete(id) {
+           
+            emptyDone.style.display = 'none';
+            
+            
+            const completedItem = document.createElement('li');
+            completedItem.textContent = list[id];
+            donelist.appendChild(completedItem);
+            
+            
+            const taskItem = document.getElementById(id);
+            taskItem.style.animation = 'fadeIn 0.5s ease reverse';
+            setTimeout(() => {
+                taskItem.style.display = 'none';
+            }, 500);
+            
+            
+            const visibleTasks = Array.from(todolist.children).filter(item => 
+                item.id !== 'empty-todo' && item.style.display !== 'none');
+            
+            if (visibleTasks.length === 0) {
+                emptyTodo.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
